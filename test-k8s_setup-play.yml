@@ -1,0 +1,24 @@
+---
+- name: Test k8s setup step by step
+  hosts: master_1
+  become: true
+
+  tasks:
+  
+  - name: Deploy a test nginx pod to verify everything is working
+    shell: kubectl run nginx --image=nginx
+    register: nginx_deploy_output
+  - name: Show output of nginx pod deployment
+    debug:
+      var: nginx_deploy_output.stdout
+
+  - name: Verify nginx pod status
+    shell: kubectl get pods
+    register: nginx_pod_status
+  - name: Show nginx pod status
+    debug:
+      var: nginx_pod_status.stdout
+
+  - name: End of installation setup
+    debug:
+      msg: "\n----------------- INSTALLATION SETUP COMPLETED -----------------\n"

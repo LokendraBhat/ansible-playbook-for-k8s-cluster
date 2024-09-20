@@ -1,0 +1,24 @@
+---
+- name: Setup k8s on all nodes
+  hosts: all
+  become: true
+
+  tasks:
+  - name: Copy script files
+    copy:
+      src:  /home/lokendra/devops/prac/ansible-playbooks/scripts/k8s_setup.sh
+      dest: /tmp/script/
+      owner: root
+      group: root
+      mode: 0777
+         
+  - name: Run script and save log
+    shell: ./k8s_setup.sh>>setup_k8s.log
+    args:
+      chdir: /tmp/script/
+      creates: setup_k8s.log
+
+  - name: Delete the script after execution
+    file:
+      path: /tmp/script/k8s_setup.sh
+      state: absent
