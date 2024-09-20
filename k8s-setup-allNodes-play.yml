@@ -6,7 +6,7 @@
   tasks:
   - name: Copy script files
     copy:
-      src:  /home/lokendra/devops/prac/ansible-playbooks/scripts/k8s_setup.sh
+      src:  ./scripts/k8s_setup.sh
       dest: /tmp/script/
       owner: root
       group: root
