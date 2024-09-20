@@ -1,4 +1,23 @@
-# IF The error you're encountering, tls: failed to verify certificate: x509: certificate signed by unknown authority
+# Example of inventory
+cat /etc/ansible/hosts >>
+```
+[workers:vars]
+ansible_connection=ssh
+ansible_user=root   ## change 
+ansible_password=1234 ## change
+
+[workers]
+worker_1 ansible_host=worker1.com
+worker_2 ansible_host=worker2.com
+
+[masters]
+master_1 ansible_host=master1.com ansible_ssh_user=root ansible_ssh_pass=master123
+```
+Now test connectivity
+```ansible all -m ping```
+
+
+IF The error you're encountering, tls: failed to verify certificate: x509: certificate signed by unknown authority
 
 ## Steps to Resolve:
 1. Verify Kubeconfig on the Remote Node (master_1): Ensure that the kubeconfig file is properly set up and accessible. The default location for this file is $HOME/.kube/config or /etc/kubernetes/admin.conf (for root users).
