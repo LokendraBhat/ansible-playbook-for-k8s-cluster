@@ -1,0 +1,54 @@
+---
+- name: Setup Kubernetes Master Node
+  hosts: masters
+  become: yes
+  tasks:
+
+    - name: Initialize Kubernetes control plane
+      command: kubeadm init --control-plane-endpoint=master1.com --pod-network-cidr=10.244.0.0/16
+      register: kubeadm_output
+      failed_when: kubeadm_output.rc != 0
+      ignore_errors: no
+
+    - name: Check if kubeadm init was successful
+      debug:
+        msg: "Kubernetes control-plane has initialized successfully!"
+      when: kubeadm_output.rc == 0
+
+    - name: Setup kubeconfig for the regular user
+      when: ansible_user_id != 'root'
+      block:
+        - name: Create .kube directory for regular user
+          file:
+            path: "{{ ansible_env.HOME }}/.kube"
+            state: directory
+            mode: '0700'
+
+        - name: Copy Kubernetes admin config
+          copy:
+            src: /etc/kubernetes/admin.conf
+            dest: "{{ ansible_env.HOME }}/.kube/config"
+            remote_src: yes
+            owner: "{{ ansible_user_id }}"
+            group: "{{ ansible_user_id }}"
+            mode: '0600'
+
+    - name: Setup KUBECONFIG for root
+      when: ansible_user_id == 'root'
+      shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        echo "KUBECONFIG set to /etc/kubernetes/admin.conf"
+
+    - name: Install Flannel CNI (Pod Network)
+      shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+      when: kubeadm_output.rc == 0
+
+    - name: Display message for joining worker nodes
+      debug:
+        msg: "Note down the kubeadm join command with the token to join worker nodes."
+      when: kubeadm_output.rc == 0
+
+    - name: Fail if Kubernetes control-plane initialization failed
+      fail:
+        msg: "Kubernetes control-plane initialization failed."
+      when: kubeadm_output.rc != 0
